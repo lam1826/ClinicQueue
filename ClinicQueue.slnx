@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ClinicQueue.AppointmentApi/ClinicQueue.AppointmentApi.csproj" />
+    <Project Path="src/ClinicQueue.Client/ClinicQueue.Client.csproj" />
+  </Folder>
+</Solution>

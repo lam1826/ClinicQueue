@@ -1,0 +1,84 @@
+# ClinicQueue tuần 2 — dùng tên giả và dữ liệu RAM.
+# Mở bằng công cụ hỗ trợ .http, hoặc dùng các request làm mẫu cho curl/Postman.
+# Sau POST201, thay appointmentId bằng id thực để GET lại.
+@baseUrl = http://localhost:5100
+@appointmentId = 00000000-0000-0000-0000-000000000000
+
+### GET gốc → 200
+GET {{baseUrl}}/
+
+### Danh sách → 200, 4 bác sĩ
+GET {{baseUrl}}/doctors
+
+### Query mở rộng: trim + không phân biệt hoa/thường
+GET {{baseUrl}}/doctors?keyword=%20nGuYeN%20
+
+### Không khớp → 200 []
+GET {{baseUrl}}/doctors?keyword=zzzz
+
+### Chi tiết trước khi POST → 200
+GET {{baseUrl}}/doctors/1
+
+### ID đúng kiểu nhưng không có → 404 ApiError
+GET {{baseUrl}}/doctors/999
+
+### ID sai kiểu → 404 routing, không yêu cầu ApiError
+GET {{baseUrl}}/doctors/abc
+
+### Slot còn chỗ → 200; ban đầu slot1 còn3
+GET {{baseUrl}}/doctors/1/slots
+
+### Bác sĩ có thật nhưng không có slot → 200 []
+GET {{baseUrl}}/doctors/3/slots
+
+### Tạo lịch → 201 + Location; gửi khi slot1 còn chỗ
+POST {{baseUrl}}/appointments
+Content-Type: application/json
+
+{"patientName":"Nguoi Hoc Demo","doctorId":1,"slotId":1}
+
+### Sao chép id từ POST vào biến appointmentId rồi GET → 200
+GET {{baseUrl}}/appointments/{{appointmentId}}
+
+### Tên trắng → 400 INVALID_APPOINTMENT
+POST {{baseUrl}}/appointments
+Content-Type: application/json
+
+{"patientName":"   ","doctorId":1,"slotId":1}
+
+### Bác sĩ không có → 404 DOCTOR_NOT_FOUND
+POST {{baseUrl}}/appointments
+Content-Type: application/json
+
+{"patientName":"Demo","doctorId":999,"slotId":1}
+
+### Slot không có → 404 SLOT_NOT_FOUND
+POST {{baseUrl}}/appointments
+Content-Type: application/json
+
+{"patientName":"Demo","doctorId":1,"slotId":999}
+
+### Slot không thuộc bác sĩ → 400 SLOT_DOCTOR_MISMATCH
+POST {{baseUrl}}/appointments
+Content-Type: application/json
+
+{"patientName":"Demo","doctorId":2,"slotId":1}
+
+### Slot2 có thật nhưng hết chỗ → 409 SLOT_FULL
+POST {{baseUrl}}/appointments
+Content-Type: application/json
+
+{"patientName":"Demo","doctorId":1,"slotId":2}
+
+### Sai kiểu JSON → 400 binding, không yêu cầu ApiError
+POST {{baseUrl}}/appointments
+Content-Type: application/json
+
+{"patientName":"Demo","doctorId":"abc","slotId":1}
+
+### Sau các lỗi, cùng phiên API: số chỗ phải giữ nguyên
+GET {{baseUrl}}/doctors/1/slots
+
+### Dừng rồi chạy lại API; cùng appointmentId cũ → 404
+# Chỉ thực hiện sau khi đã so sánh số chỗ, không restart xen giữa bộ ca lỗi.
+GET {{baseUrl}}/appointments/{{appointmentId}}

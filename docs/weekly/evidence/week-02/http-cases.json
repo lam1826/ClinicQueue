@@ -1,0 +1,692 @@
+{
+  "time": "2026-11-10T13:40:40.850Z",
+  "apiUrl": "http://localhost:15100",
+  "webUrl": "http://localhost:15200",
+  "environment": "API Production / Web Development",
+  "doctorCount": 4,
+  "clientSourceHash": "b75534b163305267d70fb143916b00d7a88bf1c37752b225baa1f02b7b4c995d",
+  "passed": [
+    "Hai PID/cổng riêng; Client không chứa route nghiệp vụ, API không phục vụ giao diện",
+    "CORS cho phép Web đã cấu hình và POST JSON; không cho origin lạ đọc dữ liệu",
+    "GET chi tiết, query keyword và phân biệt 200[] với 404",
+    "Web tìm theo keyword, xử lý danh sách rỗng và tải lại toàn bộ",
+    "Client GET bác sĩ không tồn tại hiển thị Code/Message/404, không tiếp tục đặt",
+    "Web hiển thị lỗi 400 từ server khi tên chỉ có khoảng trắng",
+    "Browser GET bác sĩ/slot → POST 201 → đọc Location qua CORS → GET lịch; ghế 3→2",
+    "7 nhánh lỗi POST 400/404/409 và 2 GET lỗi; lỗi không làm giảm chỗ",
+    "Đổi bác sĩ xóa slot cũ; trạng thái không còn chỗ hiển thị rõ",
+    "POST 201 + GET lại lỗi vẫn giữ ID, không gửi POST lại; nút đọc lại khôi phục được",
+    "POST 201 với JSON hỏng vẫn giữ Location và đọc lại được, không tự POST lần hai",
+    "Desktop/mobile không tràn ngang; không có lỗi JavaScript chưa xử lý",
+    "API dừng: Web vẫn phục vụ trang và báo lỗi kết nối",
+    "Restart API: lịch RAM mất, ghế về 3; Web tải lại và kết nối được"
+  ],
+  "checks": 14,
+  "cases": [
+    {
+      "name": "GET gốc JSON service/status",
+      "expectedStatus": 200,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json; charset=utf-8",
+        "location": null,
+        "body": {
+          "service": "ClinicQueue.AppointmentApi",
+          "status": "running"
+        }
+      }
+    },
+    {
+      "name": "GET toàn bộ bác sĩ",
+      "expectedStatus": 200,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/doctors"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json; charset=utf-8",
+        "location": null,
+        "body": [
+          {
+            "id": 1,
+            "name": "Nguyen Van An",
+            "specialty": "Noi tong quat"
+          },
+          {
+            "id": 2,
+            "name": "Tran Thi Binh",
+            "specialty": "Nhi khoa"
+          },
+          {
+            "id": 3,
+            "name": "Le Minh Chau",
+            "specialty": "Da lieu"
+          },
+          {
+            "id": 4,
+            "name": "Pham Minh Duc",
+            "specialty": "Tai mui hong"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GET chi tiết bác sĩ",
+      "expectedStatus": 200,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/doctors/1"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json; charset=utf-8",
+        "location": null,
+        "body": {
+          "id": 1,
+          "name": "Nguyen Van An",
+          "specialty": "Noi tong quat"
+        }
+      }
+    },
+    {
+      "name": "GET keyword không phân biệt hoa/thường",
+      "expectedStatus": 200,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/doctors?keyword=%20nGuYeN%20"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json; charset=utf-8",
+        "location": null,
+        "body": [
+          {
+            "id": 1,
+            "name": "Nguyen Van An",
+            "specialty": "Noi tong quat"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GET keyword rỗng giữ danh sách",
+      "expectedStatus": 200,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/doctors?keyword=%20%20"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json; charset=utf-8",
+        "location": null,
+        "body": [
+          {
+            "id": 1,
+            "name": "Nguyen Van An",
+            "specialty": "Noi tong quat"
+          },
+          {
+            "id": 2,
+            "name": "Tran Thi Binh",
+            "specialty": "Nhi khoa"
+          },
+          {
+            "id": 3,
+            "name": "Le Minh Chau",
+            "specialty": "Da lieu"
+          },
+          {
+            "id": 4,
+            "name": "Pham Minh Duc",
+            "specialty": "Tai mui hong"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GET keyword không khớp",
+      "expectedStatus": 200,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/doctors?keyword=zzzz"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json; charset=utf-8",
+        "location": null,
+        "body": []
+      }
+    },
+    {
+      "name": "GET bác sĩ không tồn tại",
+      "expectedStatus": 404,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/doctors/999"
+      },
+      "response": {
+        "status": 404,
+        "contentType": "application/json; charset=utf-8",
+        "location": null,
+        "body": {
+          "code": "DOCTOR_NOT_FOUND",
+          "message": "Khong tim thay bac si."
+        }
+      }
+    },
+    {
+      "name": "GET bác sĩ sai định dạng",
+      "expectedStatus": 404,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/doctors/abc"
+      },
+      "response": {
+        "status": 404,
+        "contentType": null,
+        "location": null,
+        "body": ""
+      }
+    },
+    {
+      "name": "GET slot trước đặt lịch",
+      "expectedStatus": 200,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/doctors/1/slots"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json; charset=utf-8",
+        "location": null,
+        "body": [
+          {
+            "id": 1,
+            "doctorId": 1,
+            "startTime": "2026-11-11T08:00:00+07:00",
+            "endTime": "2026-11-11T08:30:00+07:00",
+            "remainingSeats": 3
+          }
+        ]
+      }
+    },
+    {
+      "name": "GET bác sĩ có thật nhưng không có slot",
+      "expectedStatus": 200,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/doctors/3/slots"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json; charset=utf-8",
+        "location": null,
+        "body": []
+      }
+    },
+    {
+      "name": "GET slot bác sĩ không tồn tại",
+      "expectedStatus": 404,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/doctors/999/slots"
+      },
+      "response": {
+        "status": 404,
+        "contentType": "application/json; charset=utf-8",
+        "location": null,
+        "body": {
+          "code": "DOCTOR_NOT_FOUND",
+          "message": "Khong tim thay bac si."
+        }
+      }
+    },
+    {
+      "name": "GET slot bác sĩ sai định dạng",
+      "expectedStatus": 404,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/doctors/abc/slots"
+      },
+      "response": {
+        "status": 404,
+        "contentType": null,
+        "location": null,
+        "body": ""
+      }
+    },
+    {
+      "name": "Browser POST lịch hợp lệ",
+      "expectedStatus": 201,
+      "result": "PASS",
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:15100/appointments",
+        "body": {
+          "patientName": "Nguoi Hoc Demo",
+          "doctorId": 1,
+          "slotId": 1
+        }
+      },
+      "response": {
+        "status": 201,
+        "location": "/appointments/ca00a49c-dde9-4e60-8091-59e8d7c5558e",
+        "body": {
+          "id": "ca00a49c-dde9-4e60-8091-59e8d7c5558e",
+          "patientName": "Nguoi Hoc Demo",
+          "doctorId": 1,
+          "slotId": 1,
+          "status": "PendingNumber",
+          "queueNumber": null
+        }
+      }
+    },
+    {
+      "name": "GET theo Location đúng DTO vừa tạo",
+      "expectedStatus": 200,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/appointments/ca00a49c-dde9-4e60-8091-59e8d7c5558e"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json; charset=utf-8",
+        "location": null,
+        "body": {
+          "id": "ca00a49c-dde9-4e60-8091-59e8d7c5558e",
+          "patientName": "Nguoi Hoc Demo",
+          "doctorId": 1,
+          "slotId": 1,
+          "status": "PendingNumber",
+          "queueNumber": null
+        }
+      }
+    },
+    {
+      "name": "GET chỗ sau đặt, trước các POST lỗi",
+      "expectedStatus": 200,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/doctors/1/slots"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json; charset=utf-8",
+        "location": null,
+        "body": [
+          {
+            "id": 1,
+            "doctorId": 1,
+            "startTime": "2026-11-11T08:00:00+07:00",
+            "endTime": "2026-11-11T08:30:00+07:00",
+            "remainingSeats": 2
+          }
+        ]
+      }
+    },
+    {
+      "name": "GET chỗ bác sĩ 2 trước lỗi",
+      "expectedStatus": 200,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/doctors/2/slots"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json; charset=utf-8",
+        "location": null,
+        "body": [
+          {
+            "id": 3,
+            "doctorId": 2,
+            "startTime": "2026-11-11T09:00:00+07:00",
+            "endTime": "2026-11-11T09:30:00+07:00",
+            "remainingSeats": 2
+          }
+        ]
+      }
+    },
+    {
+      "name": "POST lỗi INVALID_APPOINTMENT {\"patientName\":\" \",\"doctorId\":1,\"slotId\":1}",
+      "expectedStatus": 400,
+      "result": "PASS",
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:15100/appointments",
+        "body": {
+          "patientName": " ",
+          "doctorId": 1,
+          "slotId": 1
+        }
+      },
+      "response": {
+        "status": 400,
+        "body": {
+          "code": "INVALID_APPOINTMENT",
+          "message": "Ten benh nhan va cac ma bac si, khung gio phai hop le."
+        }
+      }
+    },
+    {
+      "name": "POST lỗi INVALID_APPOINTMENT {\"patientName\":\"Demo\",\"doctorId\":0,\"slotId\":1}",
+      "expectedStatus": 400,
+      "result": "PASS",
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:15100/appointments",
+        "body": {
+          "patientName": "Demo",
+          "doctorId": 0,
+          "slotId": 1
+        }
+      },
+      "response": {
+        "status": 400,
+        "body": {
+          "code": "INVALID_APPOINTMENT",
+          "message": "Ten benh nhan va cac ma bac si, khung gio phai hop le."
+        }
+      }
+    },
+    {
+      "name": "POST lỗi INVALID_APPOINTMENT {\"patientName\":\"Demo\",\"doctorId\":1,\"slotId\":0}",
+      "expectedStatus": 400,
+      "result": "PASS",
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:15100/appointments",
+        "body": {
+          "patientName": "Demo",
+          "doctorId": 1,
+          "slotId": 0
+        }
+      },
+      "response": {
+        "status": 400,
+        "body": {
+          "code": "INVALID_APPOINTMENT",
+          "message": "Ten benh nhan va cac ma bac si, khung gio phai hop le."
+        }
+      }
+    },
+    {
+      "name": "POST lỗi DOCTOR_NOT_FOUND {\"patientName\":\"Demo\",\"doctorId\":999,\"slotId\":1}",
+      "expectedStatus": 404,
+      "result": "PASS",
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:15100/appointments",
+        "body": {
+          "patientName": "Demo",
+          "doctorId": 999,
+          "slotId": 1
+        }
+      },
+      "response": {
+        "status": 404,
+        "body": {
+          "code": "DOCTOR_NOT_FOUND",
+          "message": "Khong tim thay bac si."
+        }
+      }
+    },
+    {
+      "name": "POST lỗi SLOT_NOT_FOUND {\"patientName\":\"Demo\",\"doctorId\":1,\"slotId\":999}",
+      "expectedStatus": 404,
+      "result": "PASS",
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:15100/appointments",
+        "body": {
+          "patientName": "Demo",
+          "doctorId": 1,
+          "slotId": 999
+        }
+      },
+      "response": {
+        "status": 404,
+        "body": {
+          "code": "SLOT_NOT_FOUND",
+          "message": "Khong tim thay khung gio."
+        }
+      }
+    },
+    {
+      "name": "POST lỗi SLOT_DOCTOR_MISMATCH {\"patientName\":\"Demo\",\"doctorId\":2,\"slotId\":1}",
+      "expectedStatus": 400,
+      "result": "PASS",
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:15100/appointments",
+        "body": {
+          "patientName": "Demo",
+          "doctorId": 2,
+          "slotId": 1
+        }
+      },
+      "response": {
+        "status": 400,
+        "body": {
+          "code": "SLOT_DOCTOR_MISMATCH",
+          "message": "Khung gio khong thuoc bac si da chon."
+        }
+      }
+    },
+    {
+      "name": "POST lỗi SLOT_FULL {\"patientName\":\"Demo\",\"doctorId\":1,\"slotId\":2}",
+      "expectedStatus": 409,
+      "result": "PASS",
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:15100/appointments",
+        "body": {
+          "patientName": "Demo",
+          "doctorId": 1,
+          "slotId": 2
+        }
+      },
+      "response": {
+        "status": 409,
+        "body": {
+          "code": "SLOT_FULL",
+          "message": "Khung gio da het cho."
+        }
+      }
+    },
+    {
+      "name": "GET chỗ bác sĩ1 sau lỗi",
+      "expectedStatus": 200,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/doctors/1/slots"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json; charset=utf-8",
+        "location": null,
+        "body": [
+          {
+            "id": 1,
+            "doctorId": 1,
+            "startTime": "2026-11-11T08:00:00+07:00",
+            "endTime": "2026-11-11T08:30:00+07:00",
+            "remainingSeats": 2
+          }
+        ]
+      }
+    },
+    {
+      "name": "GET chỗ bác sĩ2 sau lỗi",
+      "expectedStatus": 200,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/doctors/2/slots"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json; charset=utf-8",
+        "location": null,
+        "body": [
+          {
+            "id": 3,
+            "doctorId": 2,
+            "startTime": "2026-11-11T09:00:00+07:00",
+            "endTime": "2026-11-11T09:30:00+07:00",
+            "remainingSeats": 2
+          }
+        ]
+      }
+    },
+    {
+      "name": "POST JSON sai kiểu doctorId: binding chặn trước handler",
+      "expectedStatus": 400,
+      "result": "PASS",
+      "request": {
+        "method": "POST",
+        "url": "http://localhost:15100/appointments",
+        "body": {
+          "patientName": "Demo",
+          "doctorId": "abc",
+          "slotId": 1
+        }
+      },
+      "response": {
+        "status": 400,
+        "contentType": null,
+        "location": null,
+        "body": ""
+      }
+    },
+    {
+      "name": "GET GUID đúng dạng nhưng lịch không có",
+      "expectedStatus": 404,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/appointments/00000000-0000-0000-0000-000000000000"
+      },
+      "response": {
+        "status": 404,
+        "contentType": "application/json; charset=utf-8",
+        "location": null,
+        "body": {
+          "code": "APPOINTMENT_NOT_FOUND",
+          "message": "Khong tim thay lich hen."
+        }
+      }
+    },
+    {
+      "name": "GET ID lịch sai dạng: routing không vào handler",
+      "expectedStatus": 404,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/appointments/abc"
+      },
+      "response": {
+        "status": 404,
+        "contentType": null,
+        "location": null,
+        "body": ""
+      }
+    },
+    {
+      "name": "GET lịch tồn tại ngay trước restart",
+      "expectedStatus": 200,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/appointments/00bca172-f7c8-4df9-ba0d-ef0992370418"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json; charset=utf-8",
+        "location": null,
+        "body": {
+          "id": "00bca172-f7c8-4df9-ba0d-ef0992370418",
+          "patientName": "Nguoi Hoc Demo",
+          "doctorId": 1,
+          "slotId": 1,
+          "status": "PendingNumber",
+          "queueNumber": null
+        }
+      }
+    },
+    {
+      "name": "GET cùng ID sau restart: lịch RAM đã mất",
+      "expectedStatus": 404,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/appointments/00bca172-f7c8-4df9-ba0d-ef0992370418"
+      },
+      "response": {
+        "status": 404,
+        "contentType": "application/json; charset=utf-8",
+        "location": null,
+        "body": {
+          "code": "APPOINTMENT_NOT_FOUND",
+          "message": "Khong tim thay lich hen."
+        }
+      }
+    },
+    {
+      "name": "GET slot sau restart: seed phục hồi",
+      "expectedStatus": 200,
+      "result": "PASS",
+      "request": {
+        "method": "GET",
+        "url": "http://localhost:15100/doctors/1/slots"
+      },
+      "response": {
+        "status": 200,
+        "contentType": "application/json; charset=utf-8",
+        "location": null,
+        "body": [
+          {
+            "id": 1,
+            "doctorId": 1,
+            "startTime": "2026-11-11T08:00:00+07:00",
+            "endTime": "2026-11-11T08:30:00+07:00",
+            "remainingSeats": 3
+          }
+        ]
+      }
+    }
+  ],
+  "newFixtureProof": {
+    "before": {
+      "time": "2026-11-10T13:40:11.632Z",
+      "doctorCount": 3,
+      "clientSourceHash": "b75534b163305267d70fb143916b00d7a88bf1c37752b225baa1f02b7b4c995d",
+      "checks": 14
+    },
+    "after": {
+      "doctorCount": 4,
+      "clientSourceHash": "b75534b163305267d70fb143916b00d7a88bf1c37752b225baa1f02b7b4c995d"
+    },
+    "conclusion": "3→4 bác sĩ chỉ đổi seed API; mã Client giữ cùng SHA256"
+  }
+}

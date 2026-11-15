@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Chọn bác sĩ, đặt giờ khám và tra cứu lịch hẹn với ClinicQueue.">
+    <title>ClinicQueue · Đặt lịch khám</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232453a6'/%3E%3Cpath d='M16 8v16M8 16h16' stroke='%23fff' stroke-width='3'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+</head>
+<body>
+    <a class="skip-link" href="#main">Đến nội dung chính</a>
+    <header class="site-header" id="top">
+        <div class="container header-inner">
+            <a class="brand" href="/" aria-label="ClinicQueue, trang chủ">
+                <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
+                ClinicQueue
+            </a>
+            <nav aria-label="Điều hướng chính">
+                <a href="#dat-lich">Đặt lịch</a>
+                <a href="#tra-cuu">Tra cứu</a>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main" tabindex="-1">
+        <section class="hero container" aria-labelledby="intro-title">
+            <div>
+                <h1 id="intro-title">Đặt lịch trước,<br> chủ động đi khám.</h1>
+                <p class="intro">Chọn bác sĩ và giờ khám phù hợp. Sau khi đặt, giữ mã lịch hẹn để xem lại thông tin và trạng thái.</p>
+                <div class="hero-actions">
+                    <a class="button" href="#dat-lich">
+                        Đặt lịch khám
+                        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+                    </a>
+                    <a class="button secondary" href="#tra-cuu">Tra cứu lịch hẹn</a>
+                </div>
+            </div>
+
+            <figure class="ticket-preview">
+                <div class="ticket">
+                    <div class="ticket-header">
+                        <span class="ticket-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18m-13 5h2m4 0h2"/></svg></span>
+                        <div>
+                            <p class="ticket-title">Phiếu hẹn khám</p>
+                            <p class="ticket-label">Ví dụ minh họa</p>
+                        </div>
+                    </div>
+                    <dl class="ticket-time">
+                        <dt>Giờ khám đã chọn</dt>
+                        <dd>09:30 <span>·</span> 12 tháng 11</dd>
+                    </dl>
+                    <div class="ticket-stub">
+                        <dl class="ticket-number">
+                            <dt>Số thứ tự</dt>
+                            <dd>024</dd>
+                        </dl>
+                        <div class="ticket-status">
+                            <span class="status-dot" aria-hidden="true"></span>
+                            Đang chờ đến lượt
+                        </div>
+                    </div>
+                </div>
+                <figcaption>Cấp số và theo dõi lượt đang phát triển.</figcaption>
+            </figure>
+        </section>
+
+        <section class="visit-guide" aria-labelledby="guide-title">
+            <div class="container guide-inner">
+                <h2 id="guide-title">Từ đặt lịch<br> đến lượt khám</h2>
+                <ol class="steps">
+                    <li>
+                        <h3>Chọn giờ khám</h3>
+                        <p>Chọn bác sĩ và khung giờ còn chỗ.</p>
+                    </li>
+                    <li>
+                        <h3>Giữ mã lịch hẹn</h3>
+                        <p>Dùng mã để tra cứu sau khi đặt.</p>
+                    </li>
+                    <li>
+                        <h3>Theo dõi lượt khám</h3>
+                        <p>Tính năng cấp số và xem lượt đang được phát triển.</p>
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+        <div class="container workspace">
+            <section class="booking-panel" id="dat-lich" aria-labelledby="booking-title" tabindex="-1">
+                <div class="section-heading">
+                    <div>
+                        <h2 id="booking-title">Đặt lịch khám</h2>
+                        <p class="section-description">Chọn bác sĩ, giờ khám và nhập tên người khám.</p>
+                    </div>
+                    <button id="reload" type="button" class="secondary">Tải lại danh sách</button>
+                </div>
+                <form id="doctor-search-form" class="doctor-search" role="search" aria-label="Tìm bác sĩ">
+                    <label for="keyword">Tìm bác sĩ theo tên</label>
+                    <input id="keyword" name="keyword" type="search" placeholder="Ví dụ An">
+                    <button id="search" type="submit" class="secondary">Tìm bác sĩ</button>
+                </form>
+                <form id="booking-form">
+                    <fieldset id="booking-fields" disabled>
+                        <legend class="visually-hidden">Chọn bác sĩ, khung giờ và tên người khám</legend>
+                        <label for="doctor">Bác sĩ</label>
+                        <select id="doctor" name="doctorId" aria-describedby="doctor-detail" required>
+                            <option value="">Đang tải bác sĩ…</option>
+                        </select>
+                        <p id="doctor-detail" class="field-note">Chọn bác sĩ để xem chuyên khoa.</p>
+                        <label for="slot">Khung giờ</label>
+                        <select id="slot" name="slotId" aria-describedby="slot-note" required>
+                            <option value="">Chọn bác sĩ trước</option>
+                        </select>
+                        <p id="slot-note" class="field-note">Chỉ hiển thị khung giờ còn chỗ.</p>
+                        <label for="patient-name">Tên người khám</label>
+                        <input id="patient-name" name="patientName" autocomplete="name" required
+                               aria-describedby="patient-name-note" placeholder="Ví dụ Nguyễn Văn A">
+                        <p id="patient-name-note" class="field-note">Hãy dùng tên giả trong bản thực hành.</p>
+                        <button id="book" type="submit">Đặt lịch khám</button>
+                    </fieldset>
+                </form>
+                <p id="notice" class="notice" role="status">Đang kết nối dịch vụ…</p>
+            </section>
+
+            <section class="lookup-panel" id="tra-cuu" aria-labelledby="result-title" tabindex="-1">
+                <h2 id="result-title">Tra cứu lịch hẹn</h2>
+                <p class="section-description">Nhập mã được cấp sau khi đặt lịch để xem trạng thái.</p>
+                <form id="lookup-form">
+                    <fieldset id="lookup-fields" disabled>
+                        <legend class="visually-hidden">Tra cứu bằng mã lịch hẹn</legend>
+                        <label for="appointment-code">Mã lịch hẹn</label>
+                        <input id="appointment-code" required autocomplete="off" autocapitalize="off" spellcheck="false"
+                               aria-describedby="lookup-notice" placeholder="Dán mã lịch hẹn">
+                        <button type="submit" class="secondary">Tra cứu</button>
+                    </fieldset>
+                </form>
+                <p id="lookup-notice" class="notice" role="status"></p>
+                <p id="empty-result" class="empty-result">Lịch hẹn sẽ xuất hiện ở đây sau khi bạn đặt lịch hoặc tra cứu.</p>
+                <div id="appointment" class="appointment-result" tabindex="-1" hidden>
+                    <h3>Lịch hẹn đang xem</h3>
+                    <dl>
+                        <dt>Người khám</dt><dd id="result-name"></dd>
+                        <dt>Mã lịch hẹn</dt><dd id="result-id" class="identifier"></dd>
+                        <dt>Trạng thái</dt><dd id="result-status"></dd>
+                        <dt>Số thứ tự</dt><dd id="result-number"></dd>
+                    </dl>
+                    <button id="read-appointment" type="button" class="secondary">Đọc lại lịch hẹn</button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <p><strong>ClinicQueue</strong> <span>· Bản thực hành</span></p>
+            <p>Dữ liệu được đặt lại khi dịch vụ khởi động lại.</p>
+        </div>
+    </footer>
+</body>
+</html>
