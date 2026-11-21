@@ -15,9 +15,25 @@ const lookupFields = document.querySelector("#lookup-fields");
 const appointmentCode = document.querySelector("#appointment-code");
 const lookupNotice = document.querySelector("#lookup-notice");
 const appointmentResult = document.querySelector("#appointment");
+const resultStatus = document.querySelector("#result-status");
+const resultNumber = document.querySelector("#result-number");
+const liveStatus = document.querySelector("#live-status");
+const liveStatusText = document.querySelector("#live-status-text");
+const guidPattern = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
+const statusLabels = {
+    PendingNumber: "Đang chờ cấp số",
+    Queued: "Đã có số, chờ đến lượt khám"
+};
 let apiBaseUrl;
 let appointmentUrl;
 let bookingNeedsRefresh = false;
+
+// Tuần 3: trạng thái của kênh SignalR.
+let hubConnection;
+let realtimeRetryTimer;
+let currentAppointmentId;                  // lịch hẹn đang theo dõi (mã chữ thường)
+let shown = { id: null, updatedAt: 0 };    // dữ liệu đang hiển thị, để bỏ qua bản cũ đến muộn
+let pendingMessage = null;                 // bản tin đến trước khi GET kịp hiển thị lịch hẹn
 
 function showNotice(message, isError = false) {
     notice.textContent = message;
@@ -27,6 +43,11 @@ function showNotice(message, isError = false) {
 function showLookupNotice(message, isError = false) {
     lookupNotice.textContent = message;
     lookupNotice.dataset.error = String(isError);
+}
+
+function setLiveStatus(message, state) {
+    liveStatusText.textContent = message;
+    liveStatus.dataset.state = state;
 }
 
 function setBusy(busy) {
@@ -115,14 +136,128 @@ async function loadSlots() {
     }
 }
 
+function statusLabel(status) {
+    return statusLabels[status] ?? status;
+}
+
 function renderAppointment(appointment) {
+    // GET và SignalR là hai đường độc lập nên có thể về không theo thứ tự.
+    // Bỏ qua bản cũ hơn bản đang hiển thị của cùng lịch hẹn.
+    const updatedAt = Date.parse(appointment.updatedAt ?? "") || 0;
+    if (appointment.id === shown.id && updatedAt < shown.updatedAt) return;
+    shown = { id: appointment.id, updatedAt };
+
     document.querySelector("#empty-result").hidden = true;
     appointmentResult.hidden = false;
     document.querySelector("#result-name").textContent = appointment.patientName;
     document.querySelector("#result-id").textContent = appointment.id;
-    document.querySelector("#result-status").textContent =
-        appointment.status === "PendingNumber" ? "Đang chờ cấp số" : appointment.status;
-    document.querySelector("#result-number").textContent = appointment.queueNumber ?? "Chưa được cấp";
+    resultStatus.textContent = statusLabel(appointment.status);
+    resultNumber.textContent = appointment.queueNumber ?? "Chưa được cấp";
+    resultNumber.dataset.fresh = "false";
+
+    // Bản tin SignalR đã đến trong lúc chờ GET: áp dụng ngay nếu nó mới hơn.
+    if (pendingMessage?.appointmentId === appointment.id) {
+        const message = pendingMessage;
+        pendingMessage = null;
+        applyStatusMessage(message);
+    }
+}
+
+// GT03 §3.3.2: hàm xử lý bản tin "AppointmentStatusChanged" do máy chủ đẩy về.
+function applyStatusMessage(message) {
+    if (message.appointmentId !== currentAppointmentId) return; // tin của lịch đã xem trước đó
+    if (message.appointmentId !== shown.id) {
+        pendingMessage = message; // lịch hẹn chưa hiển thị xong, giữ lại để áp dụng sau
+        return;
+    }
+    const updatedAt = Date.parse(message.updatedAt) || 0;
+    if (updatedAt < shown.updatedAt) return;
+    shown = { id: message.appointmentId, updatedAt };
+
+    resultStatus.textContent = statusLabel(message.status);
+    resultNumber.textContent = message.queueNumber ?? "Chưa được cấp";
+    resultNumber.dataset.fresh = String(message.queueNumber != null);
+    if (message.queueNumber != null) {
+        showLookupNotice(`Đã cấp số thứ tự ${message.queueNumber}. Trang tự cập nhật, không cần tải lại.`);
+    }
+}
+
+// Vào nhóm SignalR của một lịch hẹn. Nếu chưa có kết nối thì chỉ ghi nhớ mã;
+// khi kết nối xong, resyncWatchedAppointment sẽ vào nhóm và đọc lại trạng thái.
+async function watchAppointment(id) {
+    const nextId = id.toLowerCase();
+    if (nextId !== currentAppointmentId) pendingMessage = null;
+    currentAppointmentId = nextId;
+    if (!window.signalR || hubConnection?.state !== signalR.HubConnectionState.Connected) return false;
+    try {
+        await hubConnection.invoke("WatchAppointment", currentAppointmentId);
+        setLiveStatus("Đang tự cập nhật trạng thái lịch hẹn này.", "live");
+        return true;
+    } catch {
+        setLiveStatus("Chưa đăng ký được cập nhật tự động. Dùng “Đọc lại lịch hẹn”.", "error");
+        return false;
+    }
+}
+
+// GT03 §3.2.5, TH03 bước 13.4: kết nối mới không còn nhóm cũ và có thể đã lỡ bản tin,
+// nên vào lại nhóm rồi đọc trạng thái gốc bằng REST.
+async function resyncWatchedAppointment() {
+    if (!currentAppointmentId || !guidPattern.test(currentAppointmentId)) {
+        setLiveStatus("Đã kết nối cập nhật tự động.", "live");
+        return;
+    }
+    await watchAppointment(currentAppointmentId);
+    try {
+        const { data } = await request(apiUrl(`/appointments/${currentAppointmentId}`));
+        renderAppointment(data);
+    } catch (error) {
+        showLookupNotice(error.response?.status === 404
+            ? "Dịch vụ không còn lịch hẹn này. Bản thực hành lưu dữ liệu trong RAM nên mất khi API khởi động lại."
+            : error.message, true);
+    }
+}
+
+// GT03 §3.2.3: xây kết nối, đăng ký hàm xử lý và sự kiện vòng đời trước khi mở kết nối.
+function createRealtimeConnection() {
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl(apiUrl("/hubs/appointments").href) // URL tuyệt đối vì hub ở origin khác
+        .withAutomaticReconnect()                    // thử lại sau 0, 2, 10, 30 giây
+        .build();
+
+    // Tên phải khớp chính xác tên máy chủ dùng trong SendAsync.
+    connection.on("AppointmentStatusChanged", applyStatusMessage);
+    connection.onreconnecting(() =>
+        setLiveStatus("Mất kết nối cập nhật tự động, đang thử kết nối lại…", "error"));
+    connection.onreconnected(() => resyncWatchedAppointment());
+    connection.onclose(() => {
+        setLiveStatus("Đã ngừng cập nhật tự động. Sẽ thử kết nối lại; trong lúc chờ hãy dùng “Đọc lại lịch hẹn”.", "error");
+        scheduleRealtimeStart();
+    });
+    return connection;
+}
+
+async function startRealtime() {
+    clearTimeout(realtimeRetryTimer);
+    if (!window.signalR) {
+        setLiveStatus("Không tải được thư viện cập nhật tự động. Dùng “Đọc lại lịch hẹn”.", "error");
+        return;
+    }
+    hubConnection ??= createRealtimeConnection();
+    if (hubConnection.state !== signalR.HubConnectionState.Disconnected) return;
+    try {
+        await hubConnection.start();
+        await resyncWatchedAppointment();
+    } catch {
+        // withAutomaticReconnect không xử lý lần start() đầu tiên thất bại (TH03 bước 10.3),
+        // nên client tự hẹn thử lại.
+        setLiveStatus("Chưa kết nối được cập nhật tự động. Sẽ thử lại sau 5 giây.", "error");
+        scheduleRealtimeStart();
+    }
+}
+
+function scheduleRealtimeStart() {
+    clearTimeout(realtimeRetryTimer);
+    realtimeRetryTimer = setTimeout(startRealtime, 5000);
 }
 
 async function start() {
@@ -131,6 +266,7 @@ async function start() {
     try {
         const { data } = await request("/client-config");
         apiBaseUrl = data.apiBaseUrl;
+        startRealtime(); // chạy song song, không chặn việc tải bác sĩ
         await loadDoctors();
     } catch (error) {
         showNotice(error.message, true);
@@ -167,6 +303,7 @@ form.addEventListener("submit", async (event) => {
     showNotice("Đang gửi yêu cầu đặt lịch…");
     let created = false;
     try {
+        // REST tạo tài nguyên (GT03 §3.3): SignalR không dùng để đặt lịch.
         const { response, data } = await request(apiUrl("/appointments"), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -177,6 +314,9 @@ form.addEventListener("submit", async (event) => {
             })
         });
         created = true;
+        // Vào nhóm trước khi đọc lại: thay đổi xảy ra trước lúc vào nhóm sẽ thấy qua GET,
+        // thay đổi xảy ra sau đó sẽ được đẩy qua SignalR.
+        await watchAppointment(data.id);
         renderAppointment(data); // Giữ ID ngay sau POST, kể cả khi bước đọc lại lỗi.
         const location = response.headers.get("Location");
         appointmentUrl = apiUrl(location ?? `/appointments/${data.id}`);
@@ -185,7 +325,9 @@ form.addEventListener("submit", async (event) => {
         renderAppointment(saved);
         await loadSlots();
         bookingNeedsRefresh = false;
-        showNotice("Đã đặt lịch và đọc lại thành công. Lịch đang chờ cấp số.");
+        showNotice(saved.queueNumber != null
+            ? "Đã đặt lịch và đã có số thứ tự."
+            : "Đã đặt lịch. Số thứ tự sẽ tự hiện khi được cấp.");
         appointmentResult.focus();
     } catch (error) {
         if (error.response?.status === 201) {
@@ -215,20 +357,23 @@ form.addEventListener("submit", async (event) => {
 
 lookupForm.addEventListener("submit", async event => {
     event.preventDefault();
-    const code = appointmentCode.value.trim();
-    if (!/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(code)) {
+    const code = appointmentCode.value.trim().toLowerCase();
+    if (!guidPattern.test(code)) {
         showLookupNotice("Mã lịch hẹn chưa đúng định dạng. Hãy sao chép cả mã từ phiếu hẹn.", true);
         return;
     }
     setBusy(true);
     showLookupNotice("Đang tra cứu lịch hẹn…");
     const url = apiUrl(`/appointments/${code}`);
+    const previousId = currentAppointmentId;
     try {
+        await watchAppointment(code); // cùng thứ tự với đặt lịch: vào nhóm rồi mới GET
         const { data } = await request(url);
         appointmentUrl = url;
         renderAppointment(data);
         showLookupNotice("Đã tìm thấy lịch hẹn.");
     } catch (error) {
+        currentAppointmentId = previousId; // không tìm thấy: tiếp tục theo dõi lịch đang hiển thị
         const message = error.response?.status === 404
             ? "Không tìm thấy lịch hẹn. Hãy kiểm tra lại mã."
             : error.message;

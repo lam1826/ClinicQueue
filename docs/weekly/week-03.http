@@ -1,0 +1,33 @@
+### Tuần 3 — các request REST và negotiate để tự thử (API chạy profile http ở cổng 5100)
+@api = http://localhost:5100
+
+### 1. API vẫn chạy như tuần 2
+GET {{api}}/
+
+### 2. Bước bắt tay của SignalR: trả connectionId và 3 kiểu truyền
+### (WebSockets, ServerSentEvents, LongPolling — GT03 §3.1.2)
+POST {{api}}/hubs/appointments/negotiate?negotiateVersion=1
+
+### 3. Mở thẳng URL hub bằng GET không dùng được (TH03 bước 7.3): trả 400
+GET {{api}}/hubs/appointments
+
+### 4. Preflight CORS mà trình duyệt gửi trước negotiate
+OPTIONS {{api}}/hubs/appointments/negotiate?negotiateVersion=1
+Origin: http://localhost:5200
+Access-Control-Request-Method: POST
+Access-Control-Request-Headers: x-requested-with,x-signalr-user-agent
+
+### 5. Đặt lịch: trả 201 ngay với PendingNumber, chưa có số
+# @name created
+POST {{api}}/appointments
+Content-Type: application/json
+
+{
+  "patientName": "Benh nhan Thu",
+  "doctorId": 1,
+  "slotId": 1
+}
+
+### 6. Gửi lại sau khoảng 2 giây: trạng thái Queued và có queueNumber
+### (REST là nguồn trạng thái gốc; SignalR chỉ báo thay đổi)
+GET {{api}}/appointments/{{created.response.body.$.id}}

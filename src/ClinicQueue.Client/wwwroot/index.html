@@ -7,6 +7,8 @@
     <title>ClinicQueue · Đặt lịch khám</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232453a6'/%3E%3Cpath d='M16 8v16M8 16h16' stroke='%23fff' stroke-width='3'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="/styles.css">
+    <!-- Thư viện SignalR JavaScript (@microsoft/signalr 10.0.11) phải chạy trước app.js. -->
+    <script src="/lib/signalr/signalr.min.js" defer></script>
     <script src="/app.js" defer></script>
 </head>
 <body>
@@ -62,7 +64,7 @@
                         </div>
                     </div>
                 </div>
-                <figcaption>Cấp số và theo dõi lượt đang phát triển.</figcaption>
+                <figcaption>Số thứ tự tự cập nhật sau khi đặt. Theo dõi lượt đang phát triển.</figcaption>
             </figure>
         </section>
 
@@ -79,8 +81,8 @@
                         <p>Dùng mã để tra cứu sau khi đặt.</p>
                     </li>
                     <li>
-                        <h3>Theo dõi lượt khám</h3>
-                        <p>Tính năng cấp số và xem lượt đang được phát triển.</p>
+                        <h3>Nhận số thứ tự</h3>
+                        <p>Trang tự hiện số khi được cấp, không cần tải lại.</p>
                     </li>
                 </ol>
             </div>
@@ -145,6 +147,10 @@
                         <dt>Trạng thái</dt><dd id="result-status"></dd>
                         <dt>Số thứ tự</dt><dd id="result-number"></dd>
                     </dl>
+                    <p id="live-status" class="live-status" role="status" data-state="idle">
+                        <span class="status-dot" aria-hidden="true"></span>
+                        <span id="live-status-text">Đang chuẩn bị cập nhật tự động…</span>
+                    </p>
                     <button id="read-appointment" type="button" class="secondary">Đọc lại lịch hẹn</button>
                 </div>
             </section>

@@ -1,0 +1,93 @@
+{
+  "time": "2026-11-21T10:20:00+07:00",
+  "api": "http://localhost:15100",
+  "web": "http://localhost:15200",
+  "signalrClient": "@microsoft/signalr 10.0.11 (Node)",
+  "note": "Du lieu gia; API chay voi cau hinh mac dinh Numbering:SimulatedDelaySeconds=2",
+  "cases": [
+    {
+      "id": "T1",
+      "name": "GET / vẫn chạy",
+      "expected": "200 running",
+      "actual": "200 running",
+      "pass": true
+    },
+    {
+      "id": "T2",
+      "name": "POST negotiate trả connectionId và 3 kiểu truyền",
+      "expected": "200; WebSockets, ServerSentEvents, LongPolling",
+      "actual": "200; WebSockets, ServerSentEvents, LongPolling; connectionId=có",
+      "pass": true
+    },
+    {
+      "id": "T3",
+      "name": "Preflight negotiate từ Web origin được phép",
+      "expected": "204; origin khớp; credentials=true; có 2 header SignalR",
+      "actual": "204; origin=http://localhost:15200; credentials=true; headers=Content-Type,X-Requested-With,X-SignalR-User-Agent",
+      "pass": true
+    },
+    {
+      "id": "T4",
+      "name": "Preflight từ origin lạ bị từ chối",
+      "expected": "không có Access-Control-Allow-Origin",
+      "actual": "204; origin=null; credentials=null; headers=null",
+      "pass": true
+    },
+    {
+      "id": "T5",
+      "name": "Ba client kết nối bằng 3 kiểu truyền khác nhau",
+      "expected": "Connected x3",
+      "actual": "Connected, Connected, Connected",
+      "pass": true
+    },
+    {
+      "id": "T6",
+      "name": "POST trả 201 ngay, trạng thái PendingNumber, chưa có số",
+      "expected": "201; PendingNumber; null; có Location",
+      "actual": "201; PendingNumber; null; Location=/appointments/6a5c5c28-e25b-43c2-964b-fd7e397faca7",
+      "pass": true
+    },
+    {
+      "id": "T7",
+      "name": "Client A chỉ nhận bản tin của lịch A",
+      "expected": "1 tin, 6a5c5c28…, Queued, số 1",
+      "actual": "1 tin: 6a5c5c28… Queued số 1",
+      "pass": true
+    },
+    {
+      "id": "T8",
+      "name": "Client B (theo dõi bằng mã chữ hoa) chỉ nhận bản tin của lịch B",
+      "expected": "1 tin, bcae52dd…, Queued, số 1",
+      "actual": "1 tin: bcae52dd… Queued số 1",
+      "pass": true
+    },
+    {
+      "id": "T9",
+      "name": "Client C không theo dõi lịch nào thì không nhận gì",
+      "expected": "0 tin",
+      "actual": "0 tin",
+      "pass": true
+    },
+    {
+      "id": "T10",
+      "name": "GET lại lịch A sau thông báo",
+      "expected": "200; Queued; số 1; updatedAt > createdAt",
+      "actual": "200; Queued; số 1; true",
+      "pass": true
+    },
+    {
+      "id": "T11",
+      "name": "Lịch thứ hai của bác sĩ 1 nhận số 2 (Long Polling)",
+      "expected": "Queued số 2",
+      "actual": "Queued số 2",
+      "pass": true
+    },
+    {
+      "id": "T12",
+      "name": "WatchAppointment với mã sai định dạng bị từ chối",
+      "expected": "invoke lỗi",
+      "actual": "Failed to invoke 'WatchAppointment' due to an error on the server.",
+      "pass": true
+    }
+  ]
+}

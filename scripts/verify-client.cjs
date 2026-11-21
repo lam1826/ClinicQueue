@@ -184,7 +184,8 @@ function startApi() {
     assert.deepEqual(readBack, createdDto);
     assert.deepEqual([readBack.patientName, readBack.doctorId, readBack.slotId, readBack.status, readBack.queueNumber],
         ["Nguoi Hoc Demo", 1, 1, "PendingNumber", null]);
-    await page.waitForFunction(() => document.querySelector("#notice").textContent.includes("đọc lại thành công"));
+    // Tuần 3 đổi câu thông báo sau đặt lịch; chạy với Numbering__SimulatedDelaySeconds lớn để giữ PendingNumber.
+    await page.waitForFunction(() => document.querySelector("#notice").textContent.startsWith("Đã đặt lịch"));
     const appointmentId = await page.locator("#result-id").innerText();
     assert.match(appointmentId, /^[0-9a-f-]{36}$/);
     assert.match(await page.locator("#slot").innerText(), /Còn 2 chỗ/);

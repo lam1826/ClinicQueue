@@ -2,9 +2,11 @@
 
 Ngày lập: 2026-11-10. **Đã chọn Web + PostgreSQL; phần mã/kiểm chứng/tài liệu tuần 2 đã hoàn thiện.** Đã rà soát toàn bộ giáo trình và xác nhận với người dùng: **chương N tương ứng tuần N**. Các quy tắc nghiệp vụ chi tiết còn cần chốt.
 
+Cập nhật 2026-11-17: người dùng chọn làm ClinicQueue xuyên suốt 9 tuần **theo giáo trình**, kể cả đưa GraphQL (tuần 4) và gRPC (tuần 5) vào sản phẩm. Khuôn mẫu là mục ứng dụng N.3 (EduSubmit) của từng chương; ánh xạ nộp bài → đặt lịch, chấm bài → cấp số.
+
 ## Mục tiêu
 
-Hoàn thành đề tài 09 với kiến thức và sản phẩm tích lũy từng tuần: REST → SignalR → xử lý cấp số qua RabbitMQ → sự kiện và thông báo → Docker → báo cáo/bảo vệ. Làm cá nhân trong học phần 9 tuần; hiện là tuần 2, còn 8 tuần tính cả tuần này.
+Hoàn thành đề tài 09 với kiến thức và sản phẩm tích lũy từng tuần: REST → SignalR → GraphQL → gRPC nội bộ → xử lý cấp số qua RabbitMQ → sự kiện và thông báo → Docker → báo cáo/bảo vệ. Làm cá nhân trong học phần 9 tuần; kế hoạch lập ở tuần 2; từ 2026-11-17 là tuần 3.
 
 ## Bối cảnh và căn cứ
 
@@ -21,13 +23,13 @@ Hoàn thành đề tài 09 với kiến thức và sản phẩm tích lũy từn
 - Bài toán giữ đúng `Du án/HUONG-DAN-CHUNG.md` và đề tài 09: tám chức năng, sáu API tối thiểu, dữ liệu và luồng RabbitMQ/SignalR. Các mốc phân kỳ bên dưới là cách tổ chức thực hiện, không phải yêu cầu nguyên văn của giảng viên.
 - Một minh chứng ClinicQueue có thể đồng thời chứng minh kiến thức và phần vận dụng nếu khớp mục tiêu đã đối chiếu. Không mặc định bắt tạo lại toàn bộ Catalog/EduSubmit trước khi được làm dự án.
 - Bài nộp thực hành của lớp giữ yêu cầu riêng trong PDF. Chẳng hạn TH02 yêu cầu CatalogPractice + Console tự viết; bản Web ClinicQueue không tự được xem là thay thế bài nộp đó. Ghi rõ yêu cầu nộp nếu áp dụng, không trộn nó với nghiệm thu đề tài.
-- GraphQL/gRPC vẫn được học và thực hành ở tuần 4/5. Dùng kết quả để đánh giá truy vấn, hợp đồng và ranh giới dịch vụ của ClinicQueue; tích hợp vào sản phẩm là lựa chọn riêng vì T09 không bắt buộc hai giao thức này. Bài mở rộng trong TH và G giữ nguyên nhãn mở rộng.
+- GraphQL/gRPC được học, thực hành ở tuần 4/5 **và đưa vào ClinicQueue** theo GT04 §4.3, GT05 §5.3 (quyết định của người dùng 2026-11-17). T09 không bắt buộc hai giao thức này, nên báo cáo ghi rõ đây là phần vận dụng theo giáo trình; sáu API REST và luồng RabbitMQ/SignalR của T09 vẫn là chuẩn nghiệm thu. Bài mở rộng trong TH và G giữ nguyên nhãn mở rộng.
 
 ## Phạm vi và giới hạn
 
 Đáp ứng [F01–F09, N01–N05, D01–D02](requirements.md): tra cứu, đặt/hủy, cấp số bất đồng bộ, gọi lượt, theo dõi trực tiếp, lưu trạng thái, chạy các service riêng và Docker, tài liệu/báo cáo/GitHub.
 
-Tuần 4 học đầy đủ chương 4/TH04 (GraphQL), tuần 5 học đầy đủ chương 5/TH05 (gRPC), đúng lịch người dùng xác nhận. Đây là nội dung phải học/thực hành của môn; tích hợp GraphQL/gRPC vào sản phẩm đề tài 09 không phải yêu cầu gốc. Ghi nguồn thực hành cho từng phần áp dụng; tách yêu cầu bài nộp lớp khi PDF quy định sản phẩm riêng. Auth, DLQ nâng cao, thống kê và triển khai cloud để sau phần cốt lõi. Sử dụng dữ liệu mô phỏng.
+Tuần 4 học đầy đủ chương 4/TH04 (GraphQL), tuần 5 học đầy đủ chương 5/TH05 (gRPC), đúng lịch người dùng xác nhận. Đây là nội dung phải học/thực hành của môn và được vận dụng vào ClinicQueue như EduSubmit trong giáo trình; tích hợp GraphQL/gRPC không phải yêu cầu gốc của đề tài 09. Ghi nguồn thực hành cho từng phần áp dụng; tách yêu cầu bài nộp lớp khi PDF quy định sản phẩm riêng. Auth, DLQ nâng cao, thống kê và triển khai cloud để sau phần cốt lõi. Sử dụng dữ liệu mô phỏng.
 
 ## Lựa chọn kỹ thuật và trạng thái
 
@@ -37,7 +39,7 @@ Tuần 4 học đầy đủ chương 4/TH04 (GraphQL), tuần 5 học đầy đ�
 | Tên | Thư mục `ClinicQueue`, solution `ClinicQueue.slnx`; tên tiếng Việt trong báo cáo | Giữ mã đề tài 09 ở README, không cần đưa số vào namespace |
 | Client | **Đã chọn Web** HTML/JavaScript; ASP.NET Core host tĩnh riêng | Giữ ranh giới HTTP của mẫu Console, cần xử lý CORS và lỗi HTTP phía browser |
 | Database | **Đã chọn PostgreSQL**; dùng một DB cho bản học tập là phương án thiết kế | Xác minh kết nối và cấu hình riêng của dự án; không coi psql đã cài là server đã sẵn sàng |
-| Cấu trúc | Một solution, 3 backend chạy độc lập + client + Contracts | Không cần thêm gateway hoặc tách database mỗi service ở giai đoạn này |
+| Cấu trúc | Một solution, 3 backend theo T09 chạy độc lập + client + Contracts; thêm NumberingService gRPC nội bộ từ tuần 5 | Không cần thêm gateway hoặc tách database mỗi service ở giai đoạn này; vai trò NumberingService sau khi có queue chốt ở tuần 6 |
 
 Người dùng đã chọn Web + PostgreSQL ngày 2026-11-10 và yêu cầu hướng dẫn từng bước. P01–P07 vẫn là quy tắc đề xuất cần chốt. C#/.NET 10, Minimal API, RabbitMQ, SignalR và Docker là yêu cầu gốc.
 
@@ -60,6 +62,14 @@ API tiếp nhận lịch, lưu trạng thái chờ và gửi yêu cầu; worker 
 
 Trạng thái dự kiến: `PendingNumber → Queued → InService → Completed`; có nhánh `Cancelled` trước khi phục vụ. Cần chốt cách hủy và chuyển lượt trong tuần 2–4. DB là nguồn trạng thái có thẩm quyền; SignalR là thông báo thay đổi.
 
+Sơ đồ trên là **đích cuối** theo T09. Theo giáo trình, sản phẩm đi qua các chặng trung gian:
+
+- Tuần 3 (GT03 §3.3): SignalR hub đặt tạm trong AppointmentApi, dùng `IHubContext`; cấp số còn là mô phỏng có kiểm soát.
+- Tuần 4 (GT04 §4.3): AppointmentApi có thêm `POST /graphql` phục vụ màn hình tổng quan hàng đợi; REST giữ cho nghiệp vụ chính.
+- Tuần 5 (GT05 §5.3): REST ở biên, AppointmentApi gọi `NumberingService` qua gRPC nội bộ để cấp số đồng bộ.
+- Tuần 6 (GT06 §6.3): thay lời gọi gRPC đồng bộ bằng job RabbitMQ và QueueWorker. Bỏ NumberingService như EduSubmit 6.3 hay giữ gRPC cho một chặng nội bộ (GT09 tr. 3 vẫn có gRPC) được chốt ở tuần này.
+- Tuần 7 (GT07 §7.3): chuyển hub từ AppointmentApi sang NotificationService riêng, nhận sự kiện qua queue bền vững.
+
 Một database dùng chung phù hợp phạm vi học tập (GT09 tr. 3). API và worker có thể cùng tác động lịch hẹn nên phải dùng transaction/điều kiện trạng thái; chỉ worker sinh số và chuyển lượt. Notification không tự thay đổi dữ liệu đặt lịch. Contracts dùng chung tên kênh và kiểu thông điệp, không chia sẻ toàn bộ entity DB.
 
 ## Cấu trúc dự kiến và thành phần ảnh hưởng
@@ -71,7 +81,8 @@ ClinicQueue/
   ClinicQueue.slnx
   src/
     ClinicQueue.Contracts/               # class library, không phải service
-    ClinicQueue.AppointmentApi/          # Minimal API + truy cập DB
+    ClinicQueue.AppointmentApi/          # Minimal API REST + POST /graphql (tuần 4) + truy cập DB
+    ClinicQueue.NumberingService/        # gRPC nội bộ cấp số, có Protos/ (tuần 5); vai trò sau tuần 6 chốt khi làm
     ClinicQueue.QueueWorker/             # BackgroundService, cấp số/gọi lượt
     ClinicQueue.NotificationService/     # subscriber + SignalR Hub
     ClinicQueue.Client/                  # Web HTML/JavaScript, host bằng ASP.NET Core
@@ -87,7 +98,7 @@ ClinicQueue/
   README.md
 ```
 
-Mỗi project chạy như service .NET sẽ có Dockerfile riêng trong thư mục project; Contracts không có Dockerfile. Web client host bằng .NET đã chọn nên cũng có Dockerfile. Các bài Console/GraphQL/gRPC riêng của học phần không tự trở thành service triển khai của ClinicQueue. Dùng build context ở root để resolve project references. Tên `docker-compose.yml` bám giao đề dù một số bài thực hành dùng `compose.yaml`.
+Mỗi project chạy như service .NET sẽ có Dockerfile riêng trong thư mục project; Contracts không có Dockerfile. Web client host bằng .NET đã chọn nên cũng có Dockerfile. Các bài thực hành riêng của lớp (Catalog, BookCatalog, CalcGrpc…) không tự trở thành service của ClinicQueue; phần GraphQL/gRPC của ClinicQueue được viết lại trên miền bác sĩ/lịch hẹn. NumberingService có Dockerfile nếu còn giữ sau tuần 6. Dùng build context ở root để resolve project references. Tên `docker-compose.yml` bám giao đề dù một số bài thực hành dùng `compose.yaml`.
 
 ## Các bước thực hiện theo tuần
 
@@ -95,13 +106,13 @@ Tuần 1 chưa có minh chứng hoàn tất trong phiên này: đầu tuần 2 k
 
 | Tuần / chương | Học và thực hành học phần | Phần áp dụng vào ClinicQueue | Mốc kiểm chứng |
 |---|---|---|---|
-| **2 — hiện tại / GT02** | Kết hợp GT02 và TH02 bước 1–12,14: tài nguyên/URI, method, DTO, status, GET/POST, client và lỗi. TH02 bước 13 là mở rộng; ôn GT01/TH01 khi cần | Từ bộ khung API hiện có: GET bác sĩ/slot, POST lịch hẹn RAM, GET lịch theo ID và Web riêng. Lịch PendingNumber, chưa có số; chưa nối broker/DB | Bảng ca đối chiếu TH02 trên ClinicQueue: GET/POST/validation, 201+Location rồi GET lịch, 400/404, lỗi mạng và mất RAM khi restart. Chưa nghiệm thu lưu bền/cấp số |
-| **3 / GT03** | Đọc toàn chương 3/TH03; Hub, Caller/All/Group, IHubContext, client, vòng đời kết nối | Tạo NotificationService + Hub và Web theo dõi bác sĩ/ngày bằng cập nhật thử có kiểm soát | Hai nhóm client nhận đúng; thử StartAsync thất bại lần đầu, reconnect/rejoin/đọc snapshot. Chưa gọi mô phỏng Task.Delay là luồng RabbitMQ hoàn chỉnh |
-| **4 / GT04** | Học chương 4: schema, query/mutation; làm TH04 về query/chọn trường/lỗi và so sánh REST; nhận diện engine thật và ví dụ mô phỏng | Bắt đầu schema PostgreSQL và các thao tác lịch hẹn; đối chiếu nhu cầu chọn trường bác sĩ/lịch với bài GraphQL, giữ đủ thời gian thực hành TH04 | Bài TH04 có ba query A/B/C, chọn trường, query rỗng/sai và lỗi mất kết nối; giải thích parser chưa hỗ trợ mutation; schema và trạng thái ClinicQueue được chốt |
-| **5 / GT05** | Học và làm TH05: proto, stub, unary RPC, deadline/cancellation, HTTP/2 và xử lý lỗi | Chuyển POST/GET lịch RAM sang PostgreSQL, bổ sung hủy, sức chứa/tranh chấp và 6 hợp đồng API; vận dụng bài gRPC để xác định contract/lỗi; thiết kế command/event tuần 6–7 | Bài gRPC chạy client/server riêng, đủ bốn phép tính, chia 0, deadline/cancellation và mất kết nối; ClinicQueue giữ dữ liệu qua restart, lịch chờ cấp số được ghi rõ chưa hoàn thiện F04/F05; không giả lập đã nhận số |
-| **6 / GT06** | Học GT06 và làm TH06: producer–queue–worker, JSON/shared contracts, durable/persistent, ack/nack, delivery/recovery | Tạo Contracts/QueueWorker, tích hợp yêu cầu cấp số và gọi lượt qua RabbitMQ; chốt cách khôi phục DB–publish | Dừng worker trước/sau xử lý, quan sát Ready/Unacked, thử redelivery, JSON lỗi, NACK có/không requeue và broker mất kết nối. Không cấp số thứ hai cho cùng lịch; không kết luận exactly-once từ ack |
-| **7 / GT07** | Đọc GT07/TH07: exchange/routing/binding, wildcard, event contract, subscriber và cầu nối SignalR | Phát sự kiện đổi số/lượt; NotificationService queue bền vững theo GT07 §7.3; nối Web với trạng thái thật | Demo xuyên suốt; tắt/bật notification; topology tồn tại trước publish; rejoin+snapshot; phân biệt command với event và luồng dữ liệu gốc |
-| **8 / GT08** | Đọc GT08/TH08: đa tiến trình, config, logging, timeout/retry, Dockerfile/network, health/readiness và shutdown | Dockerfile từng service, docker-compose.yml, service name, lưu dữ liệu, runbook | Build code trước image; config/up/demo; bảng trước/trong/sau gián đoạn. Phân biệt depends_on ngắn, service_healthy và lỗi sau startup; kiểm tra readiness trong image thật |
+| **2 / GT02** | Kết hợp GT02 và TH02 bước 1–12,14: tài nguyên/URI, method, DTO, status, GET/POST, client và lỗi. TH02 bước 13 là mở rộng; ôn GT01/TH01 khi cần | Từ bộ khung API hiện có: GET bác sĩ/slot, POST lịch hẹn RAM, GET lịch theo ID và Web riêng. Lịch PendingNumber, chưa có số; chưa nối broker/DB | Bảng ca đối chiếu TH02 trên ClinicQueue: GET/POST/validation, 201+Location rồi GET lịch, 400/404, lỗi mạng và mất RAM khi restart. Chưa nghiệm thu lưu bền/cấp số |
+| **3 — đã xong 2026-11-21 / GT03** | Đọc toàn chương 3/TH03; Hub, Caller/All/Group, IHubContext, client, vòng đời kết nối | Theo GT03 §3.3: thêm hub SignalR vào AppointmentApi (tạm, chuyển sang NotificationService ở tuần 7), endpoint dùng `IHubContext`; Web kết nối bằng thư viện SignalR JavaScript, theo dõi nhóm theo lịch hẹn/bác sĩ; cấp số mô phỏng `PendingNumber → Queued` bằng tác vụ trễ có kiểm soát rồi đẩy cập nhật | Hai nhóm client nhận đúng, nhóm khác không nhận; thử StartAsync thất bại lần đầu, reconnect → vào lại nhóm → GET lại trạng thái. Ghi rõ cấp số là mô phỏng, chưa phải F04/F05 |
+| **4 / GT04** | Học chương 4: schema, query/mutation; làm TH04 về query/chọn trường/lỗi và so sánh REST; nhận diện engine thật và ví dụ mô phỏng | Theo GT04 §4.3: thêm `POST /graphql` vào AppointmentApi cho màn hình tổng quan hàng đợi (bác sĩ, slot còn chỗ, số lịch đang chờ, lượt hiện tại), bộ thực thi đơn giản với danh sách trường được phép; REST giữ cho nghiệp vụ chính. Bắt đầu schema PostgreSQL, chốt trạng thái lịch và P01–P03 | TH04 có query A/B/C, query rỗng/sai, mất kết nối. ClinicQueue: hai truy vấn khác trường trên cùng endpoint, trường không hỗ trợ trả lỗi; giải thích giới hạn parser (chưa có mutation). Schema và trạng thái được chốt |
+| **5 / GT05** | Học và làm TH05: proto, stub, unary RPC, deadline/cancellation, HTTP/2 và xử lý lỗi | Theo GT05 §5.3: tạo `ClinicQueue.NumberingService` (gRPC nội bộ, .proto cấp số); AppointmentApi giữ REST ở biên và gọi gRPC đồng bộ để cấp số, thay phần mô phỏng tuần 3; có deadline, xử lý `RpcException`, địa chỉ trong cấu hình. Chuyển dữ liệu sang PostgreSQL; thêm `DELETE /appointments/{id}`, `GET /queues/{doctorId}`, sức chứa/tranh chấp; thiết kế command/event tuần 6–7 | TH05 đủ bốn phép tính, chia 0, deadline/cancellation, mất kết nối. ClinicQueue: đặt lịch nhận số qua gRPC; dừng NumberingService thì POST báo lỗi rõ ràng (lý do chuyển sang queue ở tuần 6); dữ liệu còn sau restart; đủ 6 API. Cấp số đồng bộ qua gRPC chưa đáp ứng F04 |
+| **6 / GT06** | Học GT06 và làm TH06: producer–queue–worker, JSON/shared contracts, durable/persistent, ack/nack, delivery/recovery | Theo GT06 §6.3: thay lời gọi gRPC đồng bộ bằng job RabbitMQ; tạo Contracts/QueueWorker, tích hợp yêu cầu cấp số và gọi lượt qua RabbitMQ; chốt vai trò còn lại của NumberingService và cách khôi phục DB–publish | Dừng worker trước/sau xử lý, quan sát Ready/Unacked, thử redelivery, JSON lỗi, NACK có/không requeue và broker mất kết nối. Không cấp số thứ hai cho cùng lịch; không kết luận exactly-once từ ack |
+| **7 / GT07** | Đọc GT07/TH07: exchange/routing/binding, wildcard, event contract, subscriber và cầu nối SignalR | Phát sự kiện đổi số/lượt; tạo NotificationService, chuyển hub SignalR từ AppointmentApi sang đây, queue bền vững theo GT07 §7.3; nối Web với trạng thái thật | Demo xuyên suốt; tắt/bật notification; topology tồn tại trước publish; rejoin+snapshot; phân biệt command với event và luồng dữ liệu gốc |
+| **8 / GT08** | Đọc GT08/TH08: đa tiến trình, config, logging, timeout/retry, Dockerfile/network, health/readiness và shutdown | Dockerfile từng service (kể cả NumberingService nếu còn giữ), docker-compose.yml, service name, lưu dữ liệu, runbook | Build code trước image; config/up/demo; bảng trước/trong/sau gián đoạn. Phân biệt depends_on ngắn, service_healthy và lỗi sau startup; kiểm tra readiness trong image thật |
 | **9 / GT09** | Đọc GT09, chú giải kiến trúc, bảng MEP và các kịch bản thay đổi/đánh đổi | Nghiệm thu F/N/D; hoàn thiện báo cáo, GitHub/README; diễn tập bảo vệ | Sơ đồ ghi hướng/giao thức/đồng bộ–bất đồng bộ, ít nhất 3 điểm lỗi; bảng nguồn–đích/giao thức/MEP/lỗi/phục hồi, thuyết minh 300–500 từ vận dụng vào ClinicQueue; chạy lại bộ nộp |
 
 Mỗi tuần có bảng truy vết **GT mục/trang → TH bước/trang → chức năng hoặc quyết định ClinicQueue → minh chứng**. Minh chứng được dùng chung khi thực sự đáp ứng cả hai mục tiêu; yêu cầu nộp bài mẫu của lớp vẫn được ghi riêng theo PDF. Không suy hoàn tất bài học từ một chức năng chạy được nếu các bước/ca còn thiếu.
@@ -158,3 +169,8 @@ Dự án đã chuyển sang ClinicQueue ở lượt trước và đối chiếu 
 ## Mốc hoàn tất tuần2
 
 Đã bàn giao mã REST/Web,31caHTTP thực tế,14nhóm kiểm chứng, lời giảiGT02/TH02 vàhướngdẫnchạy. Cókeywordmởrộng và4BTGT02chuyểnthể. Mốc tiếp theo làtuần3SignalR; không coi201/RAMlàđạt lưu bền/cấp số của đềcuối kỳ.
+
+
+## Mốc hoàn tất tuần 3 (2026-11-21)
+
+Theo yêu cầu "bạn làm luôn đi" của người dùng, agent viết mã tuần 3 và giải thích. AppointmentApi có `AddSignalR`, `AppointmentHub` tại `/hubs/appointments` (`WatchAppointment(Guid)`, nhóm `appointment:{id}`), tác vụ nền cấp số mô phỏng `PendingNumber → Queued` (trễ cấu hình `Numbering:SimulatedDelaySeconds`), gửi `AppointmentStatusChanged` qua `IHubContext` tới đúng nhóm; CORS mở thêm credentials, header SignalR và DELETE. Web dùng `@microsoft/signalr` 10.0.11 đặt trong `wwwroot/lib`, vào nhóm trước khi GET lại, bỏ qua bản cũ theo `updatedAt`, kết nối lại thì vào lại nhóm và GET, lần đầu thất bại thì thử lại sau 5 giây. Kiểm chứng: 12/12 ca SignalR (Node), 5/5 ca trình duyệt, hồi quy tuần 2 15/15, build 0 cảnh báo. Nhóm theo bác sĩ để dành cho `GET /queues/{doctorId}` (tuần 5). Xem [week-03.md](../../weekly/week-03.md).

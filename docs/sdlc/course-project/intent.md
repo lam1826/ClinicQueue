@@ -32,7 +32,7 @@ Phạm vi ban đầu dùng dữ liệu mô phỏng bác sĩ/bệnh nhân; tập 
 ## Rủi ro và câu hỏi còn mở
 
 - Đã chốt Web + PostgreSQL ngày 2026-11-10. Cần chốt thời gian học mỗi tuần và quy tắc cấp số/hủy lịch.
-- Tuần 2 cần kiểm tra/ôn bù phần tuần 1 chưa có minh chứng; không suy việc hoàn thành từ bộ khung API. Tuần 4 học GraphQL, tuần 5 học gRPC dù không buộc tích hợp vào ClinicQueue.
+- Tuần 2 cần kiểm tra/ôn bù phần tuần 1 chưa có minh chứng; không suy việc hoàn thành từ bộ khung API. Tuần 4 học GraphQL, tuần 5 học gRPC và đưa cả hai vào ClinicQueue theo giáo trình (người dùng chốt 2026-11-17), dù đề tài 09 không bắt buộc.
 - Đặt lịch đồng thời, gửi thông điệp thất bại sau khi lưu DB, giao lại message và client mất kết nối là các tình huống cần thiết kế/kiểm tra.
 - Đây là kế hoạch học và xây dựng, chưa phải bằng chứng hệ thống đã chạy.
 
